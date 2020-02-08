@@ -23,14 +23,15 @@ for(i in seq_len(1000)) {
 }
 ```
 
-Scenario 1 - Normal(0,1)
+Scenario 1 - Gamma(5,1)
 
 ``` r
 #LSE(blue)
 plot.logspline(logspline(x1), 
                col='blue', lwd=2, 
                xlab="Data", 
-               ylab="Density")
+               ylab="Density",
+               main="Scenario 1 - Gamma(5,1)")
 
 #KDE(red)
 bw_1 = bw.bcv(x1)
@@ -49,14 +50,15 @@ legend(x="topright",
 
 ![](Main_files/figure-gfm/Sc1-1.png)<!-- -->
 
-Scenario 2 - Beta(2,3)
+Scenario 2 - Exp(0.5)
 
 ``` r
 #LSE(blue)
 plot.logspline(logspline(x2), 
                col='blue', lwd=2, 
                xlab="Data", 
-               ylab="Density")
+               ylab="Density",
+               main="Scenario 2 - Exp(0.5)")
 
 #KDE(red)
 bw_2 = bw.bcv(x2)
@@ -82,7 +84,8 @@ Scenario 3 - Mixed
 plot.logspline(logspline(x3), 
                col='blue', lwd=2, 
                xlab="Data", 
-               ylab="Density")
+               ylab="Density",
+               main="Scenario 3 - Mixed")
 
 #KDE(red)
 bw_3 = bw.bcv(x3)
