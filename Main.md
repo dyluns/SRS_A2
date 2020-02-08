@@ -48,7 +48,7 @@ legend(x="topright",
        lwd=2, cex=1)
 ```
 
-![](Main_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](Main_files/figure-gfm/Sc1-1.png)<!-- -->
 
 Scenario 2 - Beta(2,3)
 
@@ -74,7 +74,7 @@ legend(x="topright",
        lwd=2, cex=1)
 ```
 
-![](Main_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](Main_files/figure-gfm/Sc2-1.png)<!-- -->
 
 Scenario 3 - Mixed
 
@@ -101,4 +101,4 @@ legend(x="topright",
        lwd=2, cex=1)
 ```
 
-![](Main_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](Main_files/figure-gfm/Sc3-1.png)<!-- -->

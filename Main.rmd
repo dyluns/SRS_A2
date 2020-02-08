@@ -30,7 +30,7 @@ for(i in seq_len(1000)) {
 ```
 
 Scenario 1 - Normal(0,1)
-```{r}
+```{r Sc1}
 #LSE(blue)
 plot.logspline(logspline(x1), 
                col='blue', lwd=2, 
@@ -53,7 +53,7 @@ legend(x="topright",
 ```
 
 Scenario 2 - Beta(2,3)
-```{r}
+```{r Sc2}
 #LSE(blue)
 plot.logspline(logspline(x2), 
                col='blue', lwd=2, 
@@ -76,7 +76,7 @@ legend(x="topright",
 ```
 
 Scenario 3 - Mixed
-```{r}
+```{r Sc3}
 #LSE(blue)
 plot.logspline(logspline(x3), 
                col='blue', lwd=2, 
