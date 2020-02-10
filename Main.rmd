@@ -8,23 +8,60 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-set.seed(1)
-
 library(logspline)
+library(ggplot2)
+```
+
+```{r}
+bw.bcv.mod <- function(x, nb = 1000L,
+                       h.grid = diff(range(x)) * (seq(0.1, 1, l = 200))^2,
+                       plot.cv = FALSE) {
+  if ((n <- length(x)) < 2L)
+    stop("need at least 2 data points")
+  n <- as.integer(n)
+  if (is.na(n))
+    stop("invalid length(x)")
+  if (!is.numeric(x))
+    stop("invalid 'x'")
+  nb <- as.integer(nb)
+  if (is.na(nb) || nb <= 0L)
+    stop("invalid 'nb'")
+  storage.mode(x) <- "double"
+  hmax <- 1.144 * sqrt(var(x)) * n^(-1/5)
+  Z <- .Call(stats:::C_bw_den, nb, x)
+  d <- Z[[1L]]
+  cnt <- Z[[2L]]
+  fbcv <- function(h) .Call(stats:::C_bw_bcv, n, d, cnt, h)
+  ## Original code
+  # h <- optimize(fbcv, c(lower, upper), tol = tol)$minimum
+  # if (h < lower + tol | h > upper - tol)
+  #   warning("minimum occurred at one end of the range")
+  ## Modification
+  obj <- sapply(h.grid, function(h) fbcv(h))
+  h <- h.grid[which.min(obj)]
+  if (plot.cv) {
+    plot(h.grid, obj, type = "o")
+    rug(h.grid)
+    abline(v = h, col = 2, lwd = 2)
+  }
+  h
+}
 ```
 
 Section II
 
 Generate data for one-shot experiment
 ```{r}
+set.seed(1)
+
 x1 <- rgamma(1000,5,1)
-x2 <- rexp(1000,2)
+x2 <- rnorm(1000,1,0.1)
 
 x3 <- numeric(1000)
 for(i in seq_len(1000)) {
   z <- rbinom(1,1,0.5)
-  if(z == 0) x3[i] <- rgamma(1,5,1)
-  else x3[i] <- rexp(1,2)
+  if(z == 0) x3[i] <- rnorm(1,-1,1)
+  else x3[i] <- rnorm(1,2,1)
 }
 ```
 
@@ -35,10 +72,11 @@ plot.logspline(logspline(x1),
                col='blue', lwd=2, 
                xlab="Data", 
                ylab="Density",
-               main='Fig.1 - Gamma(5,1)')
+               main='Fig.1 - Gamma(5, 1)',
+               ylim=c(0,0.21))
 
 #KDE(red)
-bw_1 = bw.bcv(x1)
+bw_1 <- bw.bcv(x1)
 kde_1 <- density(x1, bw=bw_1)
 lines(kde_1, col='red', lwd=2)
 
@@ -52,22 +90,23 @@ legend(x="topright",
        lwd=2, cex=1)
 ```
 
-Scenario 2 - Exp(0.5)
+Scenario 2 - Normal(0,0.01)
 ```{r Sc2}
 #LSE(blue)
 plot.logspline(logspline(x2), 
                col='blue', lwd=2, 
                xlab="Data", 
                ylab="Density",
-               main='Fig.2 - Exp(0.5)')
+               main='Fig.2 - Normal(0, 0.01)',
+               ylim=c(0,4.1))
 
 #KDE(red)
-bw_2 = bw.bcv(x2)
+bw_2 <- bw.bcv.mod(x2)
 kde_2 <- density(x2, bw=bw_2)
 lines(kde_2, col='red', lwd=2)
 
 #True density(green)
-lines(sort(x2),dexp(sort(x2),2), col=3, lwd=2)
+lines(sort(x2),dnorm(sort(x2),1,0.1), col=3, lwd=2)
 
 #Plot configuration
 legend(x="topright",
@@ -86,12 +125,12 @@ plot.logspline(logspline(x3),
                main='Fig.3 - Mixed')
 
 #KDE(red)
-bw_3 = bw.bcv(x3)
+bw_3 <- bw.bcv.mod(x3)
 kde_3 <- density(x3, bw=bw_3)
 lines(kde_3, col='red', lwd=2)
 
 #True density(green)
-mixed <- function(x) 0.5*dgamma(x,5,1) + 0.5*dexp(x,2)
+mixed <- function(x) 0.5*dnorm(x,-1,1) + 0.5*dnorm(x,2,1)
 lines(sort(x3),mixed(sort(x3)), col=3, lwd=2)
 
 #Plot configuration
@@ -100,3 +139,482 @@ legend(x="topright",
        col=c("blue", "red", 3), 
        lwd=2, cex=1)
 ```
+
+Section III
+```{r}
+N1<-250
+N2<-500
+N3<-1000
+```
+
+Scenario 1, N=250
+```{r S1N1}
+set.seed(1)
+
+ise_lse11_full <- numeric(1000)
+ise_kde11_full <- numeric(1000)
+
+for(i in 1:1000){
+  x11 <- rgamma(N1,5,1)
+  
+  lse11 <- logspline(x11)
+  dlse11 <- dlogspline(x11, lse11)
+  
+  bw11 <- bw.bcv.mod(x11)
+  kde11 <- density(x11, bw=bw11)
+  dkde11 <- kde11$y
+  
+  se_lse11 <- splinefun(x11, (dlse11-dgamma(x11,5,1))^2)
+  ise_lse11 <- integrate(se_lse11, min(x11), max(x11))$value
+  ise_lse11_full[i] <- ise_lse11
+  
+  se_kde11 <- splinefun(kde11$x, (dkde11-dgamma(kde11$x,5,1))^2)
+  ise_kde11 <- integrate(se_kde11, min(x11), max(x11))$value
+  ise_kde11_full[i] <- ise_kde11
+}
+
+# hist(ise_lse11_full,
+#      xlab="ISE",
+#      main='Fig.4.1A - Scenario 1, N=250, LSE',
+#      ylim=c(0,350))
+# hist(ise_kde11_full,
+#      xlab="ISE",
+#      main='Fig.4.1B - Scenario 1, N=250, KDE',
+#      ylim=c(0,350))
+
+lse11df <- data.frame('ISE'=ise_lse11_full)
+kde11df <- data.frame('ISE'=ise_kde11_full)
+lse11df$Estimator <- 'LSE'
+kde11df$Estimator <- 'KDE'
+df11 <- rbind(lse11df,kde11df)
+
+ggplot(df11, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.0005) +
+  labs(y = "Count", 
+       title = "Fig.4.1 - Scenario 1, N=250"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 1, N=500
+```{r S1N2}
+set.seed(1)
+
+ise_lse12_full <- numeric(1000)
+ise_kde12_full <- numeric(1000)
+
+for(i in 1:1000){
+  x12 <- rgamma(N2,5,1)
+  
+  lse12 <- logspline(x12)
+  dlse12 <- dlogspline(x12, lse12)
+  
+  bw12 <- bw.bcv.mod(x12)
+  kde12 <- density(x12, bw=bw12)
+  dkde12 <- kde12$y
+  
+  se_lse12 <- splinefun(x12, (dlse12-dgamma(x12,5,1))^2)
+  ise_lse12 <- integrate(se_lse12, min(x12), max(x12))$value
+  ise_lse12_full[i] <- ise_lse12
+  
+  se_kde12 <- splinefun(kde12$x, (dkde12-dgamma(kde12$x,5,1))^2)
+  ise_kde12 <- integrate(se_kde12, min(x12), max(x12))$value
+  ise_kde12_full[i] <- ise_kde12
+}
+
+# hist(ise_lse12_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.4.2A - Scenario 1, N=500, LSE',
+#      ylim=c(0,120))
+# hist(ise_kde12_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.4.2B - Scenario 1, N=500, KDE',
+#      ylim=c(0,120))
+
+lse12df <- data.frame('ISE'=ise_lse12_full)
+kde12df <- data.frame('ISE'=ise_kde12_full)
+lse12df$Estimator <- 'LSE'
+kde12df$Estimator <- 'KDE'
+df12 <- rbind(lse12df,kde12df)
+
+ggplot(df12, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.00025) +
+  labs(y = "Count", 
+       title = "Fig.4.2 - Scenario 1, N=500"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 1, N=1000
+```{r S1N3}
+set.seed(1)
+
+ise_lse13_full <- numeric(1000)
+ise_kde13_full <- numeric(1000)
+
+for(i in 1:1000){
+  x13 <- rgamma(N3,5,1)
+  
+  lse13 <- logspline(x13)
+  dlse13 <- dlogspline(x13, lse13)
+  
+  bw13 <- bw.bcv.mod(x13)
+  kde13 <- density(x13, bw=bw13)
+  dkde13 <- kde13$y
+  
+  se_lse13 <- splinefun(x13, (dlse13-dgamma(x13,5,1))^2)
+  ise_lse13 <- integrate(se_lse13, min(x13), max(x13))$value
+  ise_lse13_full[i] <- ise_lse13
+  
+  se_kde13 <- splinefun(kde13$x, (dkde13-dgamma(kde13$x,5,1))^2)
+  ise_kde13 <- integrate(se_kde13, min(x13), max(x13))$value
+  ise_kde13_full[i] <- ise_kde13
+}
+
+# hist(ise_lse13_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.4.3A - Scenario 1, N=1000, LSE')
+# hist(ise_kde13_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.4.3B - Scenario 1, N=1000, KDE')
+
+lse13df <- data.frame('ISE'=ise_lse13_full)
+kde13df <- data.frame('ISE'=ise_kde13_full)
+lse13df$Estimator <- 'LSE'
+kde13df$Estimator <- 'KDE'
+df13 <- rbind(lse13df,kde13df)
+
+ggplot(df13, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.00015) +
+  labs(y = "Count", 
+       title = "Fig.4.3 - Scenario 1, N=1000"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+Scenario 2, N=250
+```{r S2N1}
+set.seed(1)
+
+ise_lse21_full <- numeric(1000)
+ise_kde21_full <- numeric(1000)
+
+for(i in 1:1000){
+  x21 <- rnorm(N1,0,0.1)
+  
+  lse21 <- logspline(x21)
+  dlse21 <- dlogspline(x21, lse21)
+  
+  bw21 <- bw.bcv.mod(x21)
+  kde21 <- density(x21, bw=bw21)
+  dkde21 <- kde21$y
+  
+  se_lse21 <- splinefun(x21, (dlse21-dnorm(x21,0,0.1))^2)
+  ise_lse21 <- integrate(se_lse21, min(x21), max(x21))$value
+  ise_lse21_full[i] <- ise_lse21
+  
+  se_kde21 <- splinefun(kde21$x, (dkde21-dnorm(kde21$x,0,0.1))^2)
+  ise_kde21 <- integrate(se_kde21, min(x21), max(x21))$value
+  ise_kde21_full[i] <- ise_kde21
+}
+
+# hist(ise_lse21_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.1A - Scenario 2, N=250, LSE')
+# hist(ise_kde21_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.1B - Scenario 2, N=250, KDE')
+
+lse21df <- data.frame('ISE'=ise_lse21_full)
+kde21df <- data.frame('ISE'=ise_kde21_full)
+lse21df$Estimator <- 'LSE'
+kde21df$Estimator <- 'KDE'
+df21 <- rbind(lse21df,kde21df)
+
+ggplot(df21, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.0075) +
+  labs(y = "Count", 
+       title = "Fig.5.1 - Scenario 2, N=250"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 2, N=500
+```{r S2N2}
+set.seed(1)
+
+ise_lse22_full <- numeric(1000)
+ise_kde22_full <- numeric(1000)
+
+for(i in 1:1000){
+  x22 <- rnorm(N2,0,0.1)
+  
+  lse22 <- logspline(x22)
+  dlse22 <- dlogspline(x22, lse22)
+  
+  bw22 <- bw.bcv.mod(x22)
+  kde22 <- density(x22, bw=bw22)
+  dkde22 <- kde22$y
+  
+  se_lse22 <- splinefun(x22, (dlse22-dnorm(x22,0,0.1))^2)
+  ise_lse22 <- integrate(se_lse22, min(x22), max(x22))$value
+  ise_lse22_full[i] <- ise_lse22
+  
+  se_kde22 <- splinefun(kde22$x, (dkde22-dnorm(kde22$x,0,0.1))^2)
+  ise_kde22 <- integrate(se_kde22, min(x22), max(x22))$value
+  ise_kde22_full[i] <- ise_kde22
+}
+
+# hist(ise_lse22_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.2A - Scenario 2, N=500, LSE')
+# hist(ise_kde22_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.2B - Scenario 2, N=500, KDE')
+
+lse22df <- data.frame('ISE'=ise_lse22_full)
+kde22df <- data.frame('ISE'=ise_kde22_full)
+lse22df$Estimator <- 'LSE'
+kde22df$Estimator <- 'KDE'
+df22 <- rbind(lse22df,kde22df)
+
+ggplot(df22, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.0035) +
+  labs(y = "Count", 
+       title = "Fig.5.2 - Scenario 2, N=500"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 2, N=1000
+```{r S2N3}
+set.seed(1)
+
+ise_lse23_full <- numeric(1000)
+ise_kde23_full <- numeric(1000)
+
+for(i in 1:1000){
+  x23 <- rnorm(N3,0,0.1)
+  
+  lse23 <- logspline(x23)
+  dlse23 <- dlogspline(x23, lse23)
+  
+  bw23 <- bw.bcv.mod(x23)
+  kde23 <- density(x23, bw=bw23)
+  dkde23 <- kde23$y
+  
+  se_lse23 <- splinefun(x23, (dlse23-dnorm(x23,0,0.1))^2)
+  ise_lse23 <- integrate(se_lse23, min(x23), max(x23))$value
+  ise_lse23_full[i] <- ise_lse23
+  
+  se_kde23 <- splinefun(kde23$x, (dkde23-dnorm(kde23$x,0,0.1))^2)
+  ise_kde23 <- integrate(se_kde23, min(x23), max(x23))$value
+  ise_kde23_full[i] <- ise_kde23
+}
+
+# hist(ise_lse23_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.3A - Scenario 2, N=1000, LSE')
+# hist(ise_kde23_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.5.3B - Scenario 2, N=1000, KDE')
+
+lse23df <- data.frame('ISE'=ise_lse23_full)
+kde23df <- data.frame('ISE'=ise_kde23_full)
+lse23df$Estimator <- 'LSE'
+kde23df$Estimator <- 'KDE'
+df23 <- rbind(lse23df,kde23df)
+
+ggplot(df23, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.0025) +
+  labs(y = "Count", 
+       title = "Fig.5.3 - Scenario 2, N=1000"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 3, N=250
+```{r S3N1}
+set.seed(1)
+
+ise_lse31_full <- numeric(1000)
+ise_kde31_full <- numeric(1000)
+
+for(i in 1:1000){
+  x31 <- numeric(N1)
+  for(j in seq_len(N1)) {
+    z <- rbinom(1,1,0.5)
+    if(z == 0) x31[j] <- rnorm(1,-1,1)
+    else x31[j] <- rnorm(1,2,1)
+  }
+  
+  lse31 <- logspline(x31)
+  dlse31 <- dlogspline(x31, lse31)
+  
+  bw31 <- bw.bcv.mod(x31)
+  kde31 <- density(x31, bw=bw31)
+  dkde31 <- kde31$y
+  
+  se_lse31 <- splinefun(x31, (dlse31-mixed(x31))^2)
+  ise_lse31 <- integrate(se_lse31, min(x31), max(x31))$value
+  ise_lse31_full[i] <- ise_lse31
+  
+  se_kde31 <- splinefun(kde31$x, (dkde31-mixed(kde31$x))^2)
+  ise_kde31 <- integrate(se_kde31, min(x31), max(x31))$value
+  ise_kde31_full[i] <- ise_kde31
+}
+
+# hist(ise_lse31_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.1A - Scenario 3, N=250, LSE')
+# hist(ise_kde31_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.1B - Scenario 3, N=250, KDE')
+
+lse31df <- data.frame('ISE'=ise_lse31_full)
+kde31df <- data.frame('ISE'=ise_kde31_full)
+lse31df$Estimator <- 'LSE'
+kde31df$Estimator <- 'KDE'
+df31 <- rbind(lse31df,kde31df)
+
+ggplot(df31, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.0005) +
+  labs(y = "Count", 
+       title = "Fig.6.1 - Scenario 3, N=250"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 3, N=500
+```{r S3N2}
+set.seed(1)
+
+ise_lse32_full <- numeric(1000)
+ise_kde32_full <- numeric(1000)
+
+for(i in 1:1000){
+  x32 <- numeric(N2)
+  for(j in seq_len(N2)) {
+    z <- rbinom(1,1,0.5)
+    if(z == 0) x32[j] <- rnorm(1,-1,1)
+    else x32[j] <- rnorm(1,2,1)
+  }
+  
+  lse32 <- logspline(x32)
+  dlse32 <- dlogspline(x32, lse32)
+  
+  bw32 <- bw.bcv.mod(x32)
+  kde32 <- density(x32, bw=bw32)
+  dkde32 <- kde32$y
+  
+  se_lse32 <- splinefun(x32, (dlse32-mixed(x32))^2)
+  ise_lse32 <- integrate(se_lse32, min(x32), max(x32))$value
+  ise_lse32_full[i] <- ise_lse32
+  
+  se_kde32 <- splinefun(kde32$x, (dkde32-mixed(kde32$x))^2)
+  ise_kde32 <- integrate(se_kde32, min(x32), max(x32))$value
+  ise_kde32_full[i] <- ise_kde32
+}
+
+# hist(ise_lse32_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.2A - Scenario 3, N=500, LSE')
+# hist(ise_kde32_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.2B - Scenario 3, N=500, KDE')
+
+lse32df <- data.frame('ISE'=ise_lse32_full)
+kde32df <- data.frame('ISE'=ise_kde32_full)
+lse32df$Estimator <- 'LSE'
+kde32df$Estimator <- 'KDE'
+df32 <- rbind(lse32df,kde32df)
+
+ggplot(df32, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.00035) +
+  labs(y = "Count", 
+       title = "Fig.6.2 - Scenario 3, N=500"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Scenario 3, N=1000
+```{r S3N3}
+set.seed(1)
+
+ise_lse33_full <- numeric(1000)
+ise_kde33_full <- numeric(1000)
+
+for(i in 1:1000){
+  x33 <- numeric(N3)
+  for(j in seq_len(N3)) {
+    z <- rbinom(1,1,0.5)
+    if(z == 0) x33[j] <- rnorm(1,-1,1)
+    else x33[j] <- rnorm(1,2,1)
+  }
+  
+  lse33 <- logspline(x33)
+  dlse33 <- dlogspline(x33, lse33)
+  
+  bw33 <- bw.bcv.mod(x33)
+  kde33 <- density(x33, bw=bw33)
+  dkde33 <- kde33$y
+  
+  se_lse33 <- splinefun(x33, (dlse33-mixed(x33))^2)
+  ise_lse33 <- integrate(se_lse33, min(x33), max(x33))$value
+  ise_lse33_full[i] <- ise_lse33
+  
+  se_kde33 <- splinefun(kde33$x, (dkde33-mixed(kde33$x))^2)
+  ise_kde33 <- integrate(se_kde33, min(x33), max(x33))$value
+  ise_kde33_full[i] <- ise_kde33
+}
+
+# hist(ise_lse33_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.3A - Scenario 3, N=1000, LSE')
+# hist(ise_kde33_full, breaks=50,
+#      xlab="ISE",
+#      main='Fig.6.3B - Scenario 3, N=1000, KDE')
+
+lse33df <- data.frame('ISE'=ise_lse33_full)
+kde33df <- data.frame('ISE'=ise_kde33_full)
+lse33df$Estimator <- 'LSE'
+kde33df$Estimator <- 'KDE'
+df33 <- rbind(lse33df,kde33df)
+
+ggplot(df33, aes(ISE, fill=Estimator)) + 
+  geom_histogram(alpha = 0.5,
+                 aes(y = ..count..),
+                 position = 'identity',
+                 binwidth = 0.00015) +
+  labs(y = "Count", 
+       title = "Fig.6.3 - Scenario 3, N=1000"
+       ) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+x <- data.frame("SN" = 1:2, "Age" = c(21,15), "Name" = c("John","Dora"))
