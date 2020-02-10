@@ -66,7 +66,7 @@ Scenario 1 - Gamma(5,1)
 #LSE(blue)
 plot.logspline(logspline(x1), 
                col='blue', lwd=2, 
-               xlab="Data", 
+               xlab="X", 
                ylab="Density",
                main='Fig.1 - Gamma(5, 1)',
                ylim=c(0,0.21))
@@ -94,7 +94,7 @@ Scenario 2 - Normal(0,0.01)
 #LSE(blue)
 plot.logspline(logspline(x2), 
                col='blue', lwd=2, 
-               xlab="Data", 
+               xlab="X", 
                ylab="Density",
                main='Fig.2 - Normal(0, 0.01)',
                ylim=c(0,4.1))
@@ -122,7 +122,7 @@ Scenario 3 - Mixed
 #LSE(blue)
 plot.logspline(logspline(x3), 
                col='blue', lwd=2, 
-               xlab="Data", 
+               xlab="X", 
                ylab="Density",
                main='Fig.3 - Mixed')
 
@@ -179,15 +179,6 @@ for(i in 1:1000){
   ise_kde11_full[i] <- ise_kde11
 }
 
-# hist(ise_lse11_full,
-#      xlab="ISE",
-#      main='Fig.4.1A - Scenario 1, N=250, LSE',
-#      ylim=c(0,350))
-# hist(ise_kde11_full,
-#      xlab="ISE",
-#      main='Fig.4.1B - Scenario 1, N=250, KDE',
-#      ylim=c(0,350))
-
 lse11df <- data.frame('ISE'=ise_lse11_full)
 kde11df <- data.frame('ISE'=ise_kde11_full)
 lse11df$Estimator <- 'LSE'
@@ -202,7 +193,14 @@ ggplot(df11, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.4.1 - Scenario 1, N=250"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S1N1-1.png)<!-- -->
@@ -234,15 +232,6 @@ for(i in 1:1000){
   ise_kde12_full[i] <- ise_kde12
 }
 
-# hist(ise_lse12_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.4.2A - Scenario 1, N=500, LSE',
-#      ylim=c(0,120))
-# hist(ise_kde12_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.4.2B - Scenario 1, N=500, KDE',
-#      ylim=c(0,120))
-
 lse12df <- data.frame('ISE'=ise_lse12_full)
 kde12df <- data.frame('ISE'=ise_kde12_full)
 lse12df$Estimator <- 'LSE'
@@ -257,7 +246,14 @@ ggplot(df12, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.4.2 - Scenario 1, N=500"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S1N2-1.png)<!-- -->
@@ -289,13 +285,6 @@ for(i in 1:1000){
   ise_kde13_full[i] <- ise_kde13
 }
 
-# hist(ise_lse13_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.4.3A - Scenario 1, N=1000, LSE')
-# hist(ise_kde13_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.4.3B - Scenario 1, N=1000, KDE')
-
 lse13df <- data.frame('ISE'=ise_lse13_full)
 kde13df <- data.frame('ISE'=ise_kde13_full)
 lse13df$Estimator <- 'LSE'
@@ -310,7 +299,14 @@ ggplot(df13, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.4.3 - Scenario 1, N=1000"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S1N3-1.png)<!-- -->
@@ -342,13 +338,6 @@ for(i in 1:1000){
   ise_kde21_full[i] <- ise_kde21
 }
 
-# hist(ise_lse21_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.1A - Scenario 2, N=250, LSE')
-# hist(ise_kde21_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.1B - Scenario 2, N=250, KDE')
-
 lse21df <- data.frame('ISE'=ise_lse21_full)
 kde21df <- data.frame('ISE'=ise_kde21_full)
 lse21df$Estimator <- 'LSE'
@@ -363,7 +352,14 @@ ggplot(df21, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.5.1 - Scenario 2, N=250"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S2N1-1.png)<!-- -->
@@ -395,13 +391,6 @@ for(i in 1:1000){
   ise_kde22_full[i] <- ise_kde22
 }
 
-# hist(ise_lse22_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.2A - Scenario 2, N=500, LSE')
-# hist(ise_kde22_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.2B - Scenario 2, N=500, KDE')
-
 lse22df <- data.frame('ISE'=ise_lse22_full)
 kde22df <- data.frame('ISE'=ise_kde22_full)
 lse22df$Estimator <- 'LSE'
@@ -416,7 +405,14 @@ ggplot(df22, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.5.2 - Scenario 2, N=500"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S2N2-1.png)<!-- -->
@@ -448,13 +444,6 @@ for(i in 1:1000){
   ise_kde23_full[i] <- ise_kde23
 }
 
-# hist(ise_lse23_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.3A - Scenario 2, N=1000, LSE')
-# hist(ise_kde23_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.5.3B - Scenario 2, N=1000, KDE')
-
 lse23df <- data.frame('ISE'=ise_lse23_full)
 kde23df <- data.frame('ISE'=ise_kde23_full)
 lse23df$Estimator <- 'LSE'
@@ -469,7 +458,14 @@ ggplot(df23, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.5.3 - Scenario 2, N=1000"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S2N3-1.png)<!-- -->
@@ -506,13 +502,6 @@ for(i in 1:1000){
   ise_kde31_full[i] <- ise_kde31
 }
 
-# hist(ise_lse31_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.1A - Scenario 3, N=250, LSE')
-# hist(ise_kde31_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.1B - Scenario 3, N=250, KDE')
-
 lse31df <- data.frame('ISE'=ise_lse31_full)
 kde31df <- data.frame('ISE'=ise_kde31_full)
 lse31df$Estimator <- 'LSE'
@@ -527,7 +516,14 @@ ggplot(df31, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.6.1 - Scenario 3, N=250"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S3N1-1.png)<!-- -->
@@ -564,13 +560,6 @@ for(i in 1:1000){
   ise_kde32_full[i] <- ise_kde32
 }
 
-# hist(ise_lse32_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.2A - Scenario 3, N=500, LSE')
-# hist(ise_kde32_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.2B - Scenario 3, N=500, KDE')
-
 lse32df <- data.frame('ISE'=ise_lse32_full)
 kde32df <- data.frame('ISE'=ise_kde32_full)
 lse32df$Estimator <- 'LSE'
@@ -585,7 +574,14 @@ ggplot(df32, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.6.2 - Scenario 3, N=500"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S3N2-1.png)<!-- -->
@@ -622,13 +618,6 @@ for(i in 1:1000){
   ise_kde33_full[i] <- ise_kde33
 }
 
-# hist(ise_lse33_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.3A - Scenario 3, N=1000, LSE')
-# hist(ise_kde33_full, breaks=50,
-#      xlab="ISE",
-#      main='Fig.6.3B - Scenario 3, N=1000, KDE')
-
 lse33df <- data.frame('ISE'=ise_lse33_full)
 kde33df <- data.frame('ISE'=ise_kde33_full)
 lse33df$Estimator <- 'LSE'
@@ -643,10 +632,14 @@ ggplot(df33, aes(ISE, fill=Estimator)) +
   labs(y = "Count", 
        title = "Fig.6.3 - Scenario 3, N=1000"
        ) +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(size = 20, hjust = 0.5),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        axis.title.x = element_text(size = 20),
+        axis.title.y = element_text(size = 20),
+        legend.text = element_text(size=15),
+        legend.title = element_text(size=15),
+        plot.margin = unit(c(0,0,0,0),"cm"))
 ```
 
 ![](Main_files/figure-gfm/S3N3-1.png)<!-- -->
-
-x \<- data.frame(“SN” = 1:2, “Age” = c(21,15), “Name” =
-c(“John”,“Dora”))
