@@ -68,6 +68,7 @@ plot.logspline(logspline(x1),
                col='blue', lwd=2, 
                xlab="X", 
                ylab="Density",
+               cex.lab=1.5,
                main='Fig.1 - Gamma(5, 1)',
                ylim=c(0,0.21))
 
@@ -96,6 +97,7 @@ plot.logspline(logspline(x2),
                col='blue', lwd=2, 
                xlab="X", 
                ylab="Density",
+               cex.lab=1.5,
                main='Fig.2 - Normal(0, 0.01)',
                ylim=c(0,4.1))
 
@@ -124,6 +126,7 @@ plot.logspline(logspline(x3),
                col='blue', lwd=2, 
                xlab="X", 
                ylab="Density",
+               cex.lab=1.5,
                main='Fig.3 - Mixed')
 
 #KDE(red)
