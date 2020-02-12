@@ -3,6 +3,11 @@ Main
 
 ``` r
 library(FNN)
+```
+
+    ## Warning: package 'FNN' was built under R version 3.6.2
+
+``` r
 library(ggplot2)
 ```
 
